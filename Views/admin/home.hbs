@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.84.0">
+    <title>Dashboard Template · Bootstrap v5.0</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/dashboard/">
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+
+
+
+    <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+
+
+
+    <link href="/Public/styleSheet/dashboard.css" rel="stylesheet">
+</head>
+
+<body style="background-color: rgb(205, 216, 227);">
+
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Bike Accessories Sales</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        {{!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
+        --}}
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                {{!-- <form action="/admin/logout" method="post">
+                    <input id="logout" value="Sign out" type="submit" style="border: 0ch;"
+                        class="bg-dark text-primary nav-link px-3">
+                </form> --}}
+                {{!-- <a class="nav-link px-3" href="">Sign out</a> --}}
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid ">
+        <div class="row ">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item mt-4">
+                            <a class="nav-link active" aria-current="page" href="/admin/home">
+                                <span data-feather="home"></span>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/category">
+                                <span data-feather="file"></span>
+                                Category
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/product">
+                                <span data-feather="shopping-cart"></span>
+                                Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/users">
+                                <span data-feather="users"></span>
+                                Customers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/order-management">
+                                <span data-feather="clipboard"></span>
+                                Orders
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/coupon">
+                                <span data-feather="slack"></span>
+                                Coupon
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/sales">
+                                <span data-feather="trending-up"></span>
+                                Sales Report
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Dashboard </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <form action="/admin/logout" method="post">
+                                <input id="logout" value="Sign out" type="submit" style="border: 0ch;"
+                                    class="btn btn-sm btn-outline-dark">
+                            </form>
+                            {{!-- <button type="button" class="btn btn-sm btn-outline-dark">Share</button> --}}
+                            {{!-- <button type="button" class="btn btn-sm btn-outline-secondary">Export</button> --}}
+                        </div>
+                        {{!-- <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <span data-feather="calendar"></span>
+                            This week
+                        </button> --}}
+                    </div>
+                </div>
+
+                <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas><br>
+                <hr>
+                <canvas class="my-4 w-100" id="payment" width="900" height="380"></canvas><br>
+                <hr>
+                <canvas class="my-4 w-100" id="sales" width="900" height="380"></canvas>
+
+
+            </main>
+        </div>
+    </div>
+
+
+    <script>
+        graph()
+        async function graph() {
+            const data = await fetch('/admin/admin-home-data', {
+                method: 'GET',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+            })
+            const { counts, categories, paymentCount, dateArray, weeklySales } = await data.json()
+
+            showgraph(counts, categories)
+            payment(paymentCount)
+            sales(dateArray, weeklySales)
+        }
+
+        function showgraph(counts, categories) {
+
+            const xValues = categories
+            const yValues = counts
+            const barColors = [
+                "#b91d47",
+                "#00aba9",
+                "#2b5797",
+                "#e8c3b9",
+                "#1e7145",
+            ];
+            new Chart("myChart", {
+                type: "pie",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: yValues
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: "Category"
+                    }
+                }
+            });
+        }
+
+
+
+        function payment(paymentCount) {
+            var xValues = ["COD", "RAZOR"];
+            var yValues = paymentCount
+            var barColors = [
+
+                "#1e7145",
+                "#7d2eab",
+                "e8c3b9",
+                "#b91d47",
+                "#00aba9",
+                "#2b5797"
+
+            ];
+
+            new Chart("payment", {
+                type: "doughnut",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: yValues
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: "Payment Method"
+                    }
+                }
+            });
+        }
+
+        function sales(dateArray, weeklySales) {
+            var xValues = dateArray
+            var yValues = weeklySales
+            var barColors = [
+                "#ab832e",
+            ];
+
+            new Chart("sales", {
+                type: "line",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        backgroundColor: barColors,
+                        data: yValues
+                    }]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: "Payment Method"
+                    }
+                }
+            });
+        }
+
+
+    </script>
+
+
+    <script src="../assets/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"
+        integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
+        integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
+        crossorigin="anonymous"></script>
+    {{!--
+    <script src="/Public/js/dashboard.js"></script> --}}
+</body>
+
+</html>
